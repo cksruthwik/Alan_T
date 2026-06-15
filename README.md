@@ -31,14 +31,14 @@ Start here: [Docs/BUILD_ORDER.md](Docs/BUILD_ORDER.md) · index: [Docs/README.md
 | Area | Docs |
 |---|---|
 | Build / Product | [Build Order](Docs/BUILD_ORDER.md) · [MVP](Docs/product/MVP.md) · [Roadmap](Docs/product/ROADMAP.md) · [PRD](Docs/product/PRD.md) · [Backlog](Docs/product/BACKLOG.md) |
-| Architecture | [System Overview](Docs/architecture/SYSTEM_OVERVIEW.md) · [ADD](Docs/architecture/ADD.md) · [Agents](Docs/architecture/AGENTS.md) · [LangGraph](Docs/architecture/LANGGRAPH.md) · [Workflows](Docs/architecture/WORKFLOWS.md) · [Decision Log](Docs/architecture/DECISION_LOG.md) |
+| Architecture | [System Overview](Docs/architecture/SYSTEM_OVERVIEW.md) · [Agents](Docs/architecture/AGENTS.md) · [Orchestration & Workflows](Docs/architecture/ORCHESTRATION.md) · [Decision Log](Docs/architecture/DECISION_LOG.md) |
 | AI | [LLM Strategy](Docs/ai/LLM_STRATEGY.md) · [Skills](Docs/ai/SKILLS.md) · [Prompts](Docs/ai/PROMPTS.md) · [Tool Catalog](Docs/ai/TOOL_CATALOG.md) |
-| Memory / Knowledge | [Memory](Docs/memory/MEMORY_ARCHITECTURE.md) · [AI-VFS](Docs/knowledge/AI_VFS.md) · [Ingestion](Docs/knowledge/INGESTION_PIPELINE.md) · [Chunking](Docs/knowledge/CHUNKING_STRATEGY.md) · [RAG](Docs/knowledge/RAG_PIPELINE.md) · [Vector Store](Docs/knowledge/VECTOR_STORE.md) |
-| Data / API | [Data Model](Docs/data/DATA_MODEL.md) · [Postgres](Docs/data/POSTGRES_SCHEMA.md) · [API](Docs/api/API_SPECIFICATION.md) |
+| Memory / Knowledge | [Memory](Docs/memory/MEMORY_ARCHITECTURE.md) · [AI-VFS](Docs/knowledge/AI_VFS.md) · [Knowledge Pipeline](Docs/knowledge/KNOWLEDGE.md) |
+| Data / API | [Data Model](Docs/data/DATA_MODEL.md) · [Postgres Schema](Docs/data/POSTGRES_SCHEMA.md) · [API](Docs/api/API_SPECIFICATION.md) |
 | Agents | [Supervisor](Docs/agents/SUPERVISOR_AGENT.md) · [Memory](Docs/agents/MEMORY_AGENT.md) · [File](Docs/agents/FILE_AGENT.md) |
 | Integrations | [Telegram](Docs/integrations/TELEGRAM.md) · [Google Calendar](Docs/integrations/GOOGLE_CALENDAR.md) · [Tailscale](Docs/integrations/TAILSCALE.md) |
-| Voice / Security / Infra | [Voice](Docs/voice/VOICE_ARCHITECTURE.md) · [Security](Docs/security/SECURITY_ARCHITECTURE.md) · [Tool Permissions](Docs/security/TOOL_PERMISSIONS.md) · [Infrastructure](Docs/infra/INFRASTRUCTURE.md) · [Deployment](Docs/infra/DEPLOYMENT.md) |
-| Ops | [Test Strategy](Docs/testing/TEST_STRATEGY.md) · [Logging](Docs/observability/LOGGING.md) · [Metrics](Docs/observability/METRICS.md) |
+| Voice / Security / Infra | [Voice](Docs/voice/VOICE_ARCHITECTURE.md) · [Security](Docs/security/SECURITY_ARCHITECTURE.md) · [Tool Permissions](Docs/security/TOOL_PERMISSIONS.md) · [Infrastructure & Deployment](Docs/infra/INFRASTRUCTURE.md) |
+| Ops | [Test Strategy](Docs/testing/TEST_STRATEGY.md) · [Observability](Docs/observability/OBSERVABILITY.md) |
 
 Full original design (Vision, Browser, Planning/Reflection, Automation, all phases): [`Docs_COMPLEX/`](Docs_COMPLEX/).
 
@@ -53,3 +53,44 @@ Full original design (Vision, Browser, Planning/Reflection, Automation, all phas
 - **Deferred:** Browser, Reflection+Planning, Research, Automation, Vision
 
 Details: [Docs/BUILD_ORDER.md](Docs/BUILD_ORDER.md) · [Docs/product/ROADMAP.md](Docs/product/ROADMAP.md)
+
+## Running M0 (current)
+
+M0 = the foundation slice: `POST /chat` → Conversation Agent → LiteLLM seam → Postgres.
+
+```bash
+# 1. Configure
+cp .env.example .env        # set ALAN_API_TOKEN + at least GROQ_API_KEY
+
+# 2. Run the stack (api + postgres/pgvector); migrations run on boot
+docker compose up -d --build
+
+# 3. Talk to it
+curl -s localhost:8000/health
+curl -s -X POST localhost:8000/chat \
+  -H "Authorization: Bearer $ALAN_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Hello, who are you?"}'
+```
+
+### Local development (no Docker)
+
+```bash
+uv sync                     # install deps
+uv run pytest               # run the test suite (uses fakes + SQLite; no keys needed)
+uv run ruff check src tests
+uv run alembic upgrade head # against your DATABASE_URL
+uv run uvicorn alan_t.app.main:create_app --factory --reload
+```
+
+### Layout
+
+```
+src/alan_t/
+├── core/        # pure domain — no provider imports (ports, ModelRouter, agents)
+├── adapters/    # LiteLLM seam, Postgres store
+└── app/         # FastAPI, config, bootstrap (composition root)
+config/models.yaml   # model purpose → primary + fallback chain
+migrations/          # Alembic
+tests/               # fakes + unit/api tests
+```

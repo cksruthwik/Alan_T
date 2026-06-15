@@ -1,0 +1,42 @@
+# Lean M0 stack: api + postgres(pgvector). Redis/Qdrant deferred (ADR-021).
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      # Override .env's localhost DB to point at the compose service.
+      DATABASE_URL: postgresql+asyncpg://alan:alan@postgres:5432/alan_t
+    ports:
+      # Bind to loopback only; remote access is via Tailscale (INFRASTRUCTURE.md §5).
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Long-term memory (Mem0: local Qdrant + history.db) must outlive the container so
+      # "restart → still remembers" holds (M1 DoD). Matches ALAN_MEMORY_PATH=.data/memory.
+      - mem_data:/app/.data/memory
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Run migrations, then serve.
+    command: >
+      sh -c "uv run --no-dev alembic upgrade head &&
+             uv run --no-dev uvicorn alan_t.app.main:create_app --factory --host 0.0.0.0 --port 8000"
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: alan
+      POSTGRES_PASSWORD: alan
+      POSTGRES_DB: alan_t
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alan -d alan_t"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  mem_data:

@@ -1,0 +1,22 @@
+# Sibling library (tracked in its own repo)
+ai-vfs
+ai-vfs/**
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local runtime data (Mem0 vector store + history)
+.data/
