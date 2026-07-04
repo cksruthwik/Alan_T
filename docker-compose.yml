@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: alan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alan}
+      POSTGRES_DB: alan_t
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alan -d alan_t"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alan:${POSTGRES_PASSWORD:-alan}@postgres:5432/alan_t
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - app_data:/app/data                         # persist ai-vfs sqlite + blobs (avoid re-embedding on rebuild)
+      - ${NOTES_PATH:-/Users/cksr/Desktop/C/Downloads_refined}:${NOTES_PATH:-/Users/cksr/Desktop/C/Downloads_refined}:ro  # host notes, read-only (path must match config/vfs.yaml)
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  telegram-gateway:
+    build: .
+    command: python -m alan_t.app.telegram_gateway
+    env_file: .env
+    environment:
+      ALAN_API_URL: http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles: ["telegram"]   # start with: docker compose --profile telegram up -d
+
+volumes:
+  pg_data:
+  app_data:

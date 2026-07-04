@@ -1,0 +1,16 @@
+# Knowledge mounts (Docs/knowledge/AI_VFS.md). Review BEFORE first ingest —
+# first ingest is the first cloud egress of these files.
+# Paths are host paths; mounted read-only into containers.
+mounts:
+  notes:
+    path: /Users/cksr/Desktop/C/Downloads_refined
+    include: ["**/*.md", "**/*.txt"]
+    exclude: ["**/.git/**", "**/node_modules/**"]
+  
+
+exclude_global:
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/.env*"
+  - "**/*.key"
+  - "**/*.pem"

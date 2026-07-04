@@ -1,0 +1,10 @@
+{# query_rewrite.j2 v0.1 (2026-07-03) — conversational → standalone search query #}
+Rewrite the user's last message as a standalone search query, resolving pronouns and
+references using the conversation. Output ONLY the rewritten query, nothing else.
+
+Conversation:
+{% for m in history %}
+{{ m.role }}: {{ m.content }}
+{% endfor %}
+
+Last message: {{ question }}

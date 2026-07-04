@@ -1,0 +1,10 @@
+# Tool permission tiers (Docs/security/TOOL_PERMISSIONS.md).
+# ALLOW = auto-execute (audited). ASK = require user approval. DENY = refuse.
+# Unlisted tools default to ASK.
+tools:
+  remember_fact: ALLOW
+  recall_memory: ALLOW
+  search_knowledge: ALLOW
+  read_source: ALLOW
+  forget_memory: ASK
+  ingest_path: ASK

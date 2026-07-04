@@ -1,0 +1,35 @@
+# Model purposes → primary + fallback chain (Docs/ai/LLM_STRATEGY.md §3).
+# provider: groq | google | nvidia (mapped to LiteLLM prefixes in the adapter).
+# Swapping a model is a config edit, never a code change.
+
+CHAT:
+  primary:   { provider: groq, model: llama-3.3-70b-versatile, temperature: 0.7 }
+  fallbacks:
+    - { provider: google, model: gemini-2.5-flash }
+    - { provider: nvidia, model: deepseek-ai/deepseek-r1 }
+
+ROUTER:
+  primary:   { provider: groq, model: llama-3.1-8b-instant, temperature: 0.0 }
+  fallbacks:
+    - { provider: google, model: gemini-2.5-flash-lite }
+
+LONG_CONTEXT:
+  primary:   { provider: google, model: gemini-2.5-pro }
+  fallbacks:
+    - { provider: google, model: gemini-2.5-flash }
+
+REASONER:
+  primary:   { provider: nvidia, model: deepseek-ai/deepseek-r1 }
+  fallbacks:
+    - { provider: google, model: gemini-2.5-pro }
+
+SUMMARIZER:
+  primary:   { provider: google, model: gemini-2.5-flash-lite, temperature: 0.0 }
+  fallbacks:
+    - { provider: groq, model: llama-3.1-8b-instant }
+
+# EMBEDDER has NO fallback by design — a silent embedder switch corrupts the
+# vector space (LLM_STRATEGY §5). dimensions=1536 uses gemini MRL truncation:
+# pgvector's HNSW index caps at 2000 dims, so the doc's 3072 is not indexable.
+EMBEDDER:
+  primary: { provider: google, model: gemini-embedding-001, dimensions: 1536 }

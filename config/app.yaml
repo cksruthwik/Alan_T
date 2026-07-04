@@ -1,0 +1,12 @@
+# Budgets + feature flags per milestone (Docs/infra/INFRASTRUCTURE.md §3).
+budgets:
+  memory_tokens: 600        # PROMPTS.md §2 [3]
+  conversation_tokens: 2000 # PROMPTS.md §2 [7]
+  context_tokens: 4000      # PROMPTS.md §2 [6]
+
+features:
+  memory: true     # M1
+  knowledge: true  # M2
+  telegram: true   # M2
+  supervisor: false # M3
+  voice: false     # M6
