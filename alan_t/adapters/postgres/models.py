@@ -37,13 +37,26 @@ def _uuid7() -> uuid.UUID:
     return uuid7()
 
 
+class Project(Base):
+    """ChatGPT-style project: groups sessions, carries shared instructions."""
+
+    __tablename__ = "projects"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid7)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    instructions: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+
+
 class Session(Base):
     __tablename__ = "sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid7)
     title: Mapped[str | None] = mapped_column(Text)
     channel: Mapped[str] = mapped_column(Text, nullable=False, default="web")
+    project_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("projects.id"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+    last_message_at: Mapped[datetime | None]
     archived_at: Mapped[datetime | None]
 
 
@@ -134,6 +147,56 @@ class Chunk(Base):
     body: Mapped[str] = mapped_column(Text, nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBED_DIM), nullable=False)
+
+
+class Contact(Base):
+    """Contacts: the assistant's Postgres-backed address book."""
+
+    __tablename__ = "contacts"
+    __table_args__ = (Index("ix_contacts_name", "name"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid7)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    email: Mapped[str | None] = mapped_column(Text)
+    phone: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class Document(Base):
+    """AI-editable writing documents, versioned in Postgres."""
+
+    __tablename__ = "documents"
+    __table_args__ = (Index("ix_documents_updated", "updated_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid7)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    format: Mapped[str] = mapped_column(Text, nullable=False, default="markdown")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class TaskRun(Base):
+    """Planner task runs (PLANNING_ENGINE.md): goal → plan steps → outcomes → reflection."""
+
+    __tablename__ = "task_runs"
+    __table_args__ = (Index("ix_task_runs_created", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid7)
+    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    plan: Mapped[dict] = mapped_column(JSONB, nullable=False)          # [{agent, instruction}]
+    step_results: Mapped[dict | None] = mapped_column(JSONB)           # [{step, response, status}]
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="planned")
+    reflection: Mapped[dict | None] = mapped_column(JSONB)             # verdict + lesson
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+    finished_at: Mapped[datetime | None]
 
 
 class ToolAudit(Base):

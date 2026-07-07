@@ -53,6 +53,8 @@ class FileAgent:
             )
 
         system = render("rag_answer.j2", user_name=ctx.user_name, chunks=chunks)
+        if task.skills:
+            system += "\n\nSelected skills for this turn:\n" + "\n".join(task.skills)
         resp = await ctx.llm.complete("CHAT", ChatRequest(messages=[
             ChatMessage(role="system", content=system),
             ChatMessage(role="user", content=task.message.text),

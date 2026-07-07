@@ -40,6 +40,7 @@ class ConversationAgent:
             features=ctx.config.get("features", {}),
             memory_facts=memory_facts,
             skills=task.skills,
+            project_instructions=task.project_instructions,
         )
         messages = [ChatMessage(role="system", content=system)]
         messages += task.history

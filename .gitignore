@@ -17,3 +17,6 @@
 # Local secrets/config overrides
 *.local
 *.local.*
+
+# third-party reference material — never committed or distributed
+Resources/

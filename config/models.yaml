@@ -1,35 +1,79 @@
-# Model purposes → primary + fallback chain (Docs/ai/LLM_STRATEGY.md §3).
+# Model roles → primary + fallback chain (Docs_COMPLEX/ai/LLM_STRATEGY.md §3).
 # provider: groq | google | nvidia (mapped to LiteLLM prefixes in the adapter).
 # Swapping a model is a config edit, never a code change.
+#
+# Placement policy (no local hosting — all models are hosted):
+# - Google is primary where it is genuinely strongest (long context, embeddings,
+#   cheap summarization, TTS) — with NVIDIA NIM as the backup when quota hits.
+# - NVIDIA NIM is primary for image processing (llama-3.2-90b-vision) since
+#   Google free-tier vision quota is the tighter constraint — Google is backup.
+# - Voice STT: Groq Whisper is the strongest hosted option LiteLLM can reach;
+#   NVIDIA NIM exposes no OpenAI-compatible STT endpoint today, so the backup
+#   is Whisper-v3 on the same provider. Revisit when Riva NIMs land in LiteLLM.
 
 CHAT:
   primary:   { provider: groq, model: llama-3.3-70b-versatile, temperature: 0.7 }
   fallbacks:
     - { provider: google, model: gemini-2.5-flash }
-    - { provider: nvidia, model: deepseek-ai/deepseek-r1 }
+    - { provider: nvidia, model: meta/llama-3.3-70b-instruct }
 
 ROUTER:
   primary:   { provider: groq, model: llama-3.1-8b-instant, temperature: 0.0 }
   fallbacks:
     - { provider: google, model: gemini-2.5-flash-lite }
+    - { provider: nvidia, model: meta/llama-3.1-8b-instruct }
 
 LONG_CONTEXT:
   primary:   { provider: google, model: gemini-2.5-pro }
   fallbacks:
     - { provider: google, model: gemini-2.5-flash }
+    - { provider: nvidia, model: meta/llama-4-maverick-17b-128e-instruct }  # 1M ctx backup
 
 REASONER:
-  primary:   { provider: nvidia, model: deepseek-ai/deepseek-r1 }
+  primary:   { provider: groq, model: openai/gpt-oss-120b }
   fallbacks:
+    - { provider: nvidia, model: deepseek-ai/deepseek-v4-pro }
     - { provider: google, model: gemini-2.5-pro }
 
 SUMMARIZER:
   primary:   { provider: google, model: gemini-2.5-flash-lite, temperature: 0.0 }
   fallbacks:
     - { provider: groq, model: llama-3.1-8b-instant }
+    - { provider: nvidia, model: meta/llama-3.1-8b-instruct }
+
+VISION:
+  primary:   { provider: nvidia, model: meta/llama-3.2-90b-vision-instruct }
+  fallbacks:
+    - { provider: google, model: gemini-2.5-flash }
+    - { provider: google, model: gemini-2.5-pro }
+
+STT:
+  primary:   { provider: groq, model: whisper-large-v3-turbo }
+  fallbacks:
+    - { provider: groq, model: whisper-large-v3 }
+
+REFLECTOR:
+  primary:   { provider: nvidia, model: deepseek-ai/deepseek-v4-flash, temperature: 0.0 }
+  fallbacks:
+    - { provider: groq, model: openai/gpt-oss-120b }
+    - { provider: google, model: gemini-2.5-flash }
+
+# TTS has no cross-provider fallback: Gemini is the only hosted TTS in the
+# chain and NVIDIA NIM offers none via LiteLLM. Honest gap, not an oversight.
+TTS:
+  primary: { provider: google, model: gemini-2.5-flash-preview-tts }
+
+# LIVE_VOICE is served by the GeminiLiveBridge (native speech-to-speech).
+LIVE_VOICE:
+  primary: { provider: google, model: gemini-2.5-flash-native-audio-latest }
+
+# IMAGE_GEN is served by the GoogleMediaAdapter (direct REST), not LiteLLM;
+# listed here so the model choice stays a config edit. Not on any critical path.
+IMAGE_GEN:
+  primary: { provider: google, model: imagen-4.0-generate-001 }
 
 # EMBEDDER has NO fallback by design — a silent embedder switch corrupts the
-# vector space (LLM_STRATEGY §5). dimensions=1536 uses gemini MRL truncation:
+# vector space (LLM_STRATEGY §6). dimensions=1536 uses gemini MRL truncation:
 # pgvector's HNSW index caps at 2000 dims, so the doc's 3072 is not indexable.
 EMBEDDER:
   primary: { provider: google, model: gemini-embedding-001, dimensions: 1536 }

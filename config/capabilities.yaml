@@ -1,0 +1,30 @@
+# Declared model capabilities (LLM_STRATEGY §5) — the bootstrap capability gate
+# checks every configured role's models against role requirements and refuses
+# to start on a mismatch or an unknown model. Fail-loud: a model missing here
+# (and its role demands a capability) blocks startup — never default-allow.
+#
+# Keys are "<provider>/<model>" exactly as written in models.yaml.
+
+groq/llama-3.3-70b-versatile:        [chat, streaming, tools, json_mode]
+groq/llama-3.1-8b-instant:           [chat, streaming, tools, json_mode]
+groq/whisper-large-v3-turbo:         [audio_in]
+groq/whisper-large-v3:               [audio_in]
+groq/openai/gpt-oss-120b:            [chat, streaming, tools, json_mode]
+
+google/gemini-2.5-pro:               [chat, streaming, tools, json_mode, vision_in, long_context]
+google/gemini-2.5-flash:             [chat, streaming, tools, json_mode, vision_in, long_context]
+google/gemini-2.5-flash-lite:        [chat, streaming, tools, json_mode, vision_in]
+google/gemini-2.5-flash-preview-tts: [audio_out]
+google/gemini-embedding-001:         [embeddings]
+
+nvidia/meta/llama-3.3-70b-instruct:               [chat, streaming, tools, json_mode]
+nvidia/meta/llama-3.1-8b-instruct:                [chat, streaming, json_mode]
+nvidia/meta/llama-4-maverick-17b-128e-instruct:   [chat, streaming, tools, json_mode, long_context]
+nvidia/meta/llama-3.2-90b-vision-instruct:        [chat, streaming, vision_in]
+nvidia/deepseek-ai/deepseek-v4-pro:               [chat, streaming, json_mode]
+nvidia/deepseek-ai/deepseek-v4-flash:             [chat, streaming, json_mode]
+
+# IMAGE_GEN is adapter-served (no LiteLLM leg); the gate has no requirements
+# for it, entry kept for completeness.
+google/imagen-4.0-generate-001:      [image_gen]
+google/gemini-2.5-flash-native-audio-latest: [audio_in, audio_out, streaming]

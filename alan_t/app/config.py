@@ -22,10 +22,30 @@ class Settings(BaseSettings):
     telegram_allowed_user_id: int = 0
     database_url: str = "postgresql+asyncpg://alan:alan@localhost:5432/alan_t"
     user_name: str = "Ruthwik"
-    # ai-vfs stores (AI_VFS.md §2) — sqlite+local blobs by default; swap to the
-    # shared Postgres by env when deployed (AIFS_* consumed via these settings)
-    vfs_metadata_uri: str = "sqlite:///./data/aifs.db"
-    vfs_blob_uri: str = "file:///./data/aifs_blobs/"
+
+    # email agent (IMAP/SMTP; unset → agent not registered)
+    imap_host: str = ""
+    imap_port: int = 993
+    smtp_host: str = ""
+    smtp_port: int = 587
+    email_address: str = ""
+    email_password: str = ""
+
+    # calendar agent (Google OAuth refresh-token flow; unset → not registered)
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret: str = ""
+    google_oauth_refresh_token: str = ""
+    google_calendar_id: str = "primary"
+
+    # web research / notifications / media
+    brave_api_key: str = ""          # empty → DuckDuckGo fallback
+    ntfy_topic: str = ""
+    tts_voice: str = "Kore"
+
+    # writable data (bind-mount in Docker to persist)
+    notes_dir: str = "./data/notes"
+    images_dir: str = "./data/images"
+    uploads_dir: str = "./data/uploads"
 
 
 def load_settings() -> Settings:

@@ -1,0 +1,33 @@
+# Scheduled automations (workers/scheduler.py). Times are HH:MM in the
+# container's local time. All shipped disabled — enable deliberately, because
+# each run spends model quota and (digest/notify) messages your phone.
+#
+# actions:
+#   digest      — morning briefing: calendar, unread email, pending approvals,
+#                 running tasks → one message to Telegram/ntfy
+#   consolidate — distill yesterday's conversations into long-term memory
+#   notify      — send `message` as-is
+#   goal        — run `goal` through the task planner (full autonomy — use care)
+
+jobs:
+  - name: morning_digest
+    at: "08:00"
+    action: digest
+    enabled: false
+
+  - name: memory_consolidation
+    at: "03:30"
+    action: consolidate
+    enabled: false
+
+  # - name: standup_reminder
+  #   at: "09:25"
+  #   action: notify
+  #   message: "Standup in 5 minutes."
+  #   enabled: true
+
+  # - name: weekly_inbox_cleanup
+  #   at: "18:00"
+  #   action: goal
+  #   goal: "Summarize this week's unread email and draft replies for anything urgent."
+  #   enabled: false

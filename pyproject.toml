@@ -17,26 +17,30 @@ dependencies = [
     "pyyaml>=6.0",
     "httpx>=0.27",
     "uuid-utils>=0.9",
-    "ai-vfs",
     "blake3>=0.4",
+    "mcp>=1.2",
+    "python-multipart>=0.0.9",
+    "pypdf>=5.0",
+    "prometheus-client>=0.20",
 ]
 
 [project.optional-dependencies]
 telegram = ["aiogram>=3.13"]
+browser = ["playwright>=1.45"]
+live-voice = ["google-genai>=1.16"]
 memory = ["mem0ai>=0.1.100", "psycopg2-binary>=2.9"]
 
 [project.scripts]
 alan = "alan_t.app.cli:main"
+alan-mcp = "alan_t.mcp_host.server:main"
 
 [dependency-groups]
 dev = [
+    "asyncpg>=0.31.0",
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
     "ruff>=0.6",
 ]
-
-[tool.uv.sources]
-ai-vfs = { path = "Resources/ai-vfs" }
 
 [build-system]
 requires = ["hatchling"]
@@ -48,6 +52,7 @@ packages = ["alan_t"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["e2e: end-to-end journeys (needs Postgres on 127.0.0.1:5432)"]
 
 [tool.ruff]
 line-length = 100

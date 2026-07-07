@@ -5,8 +5,9 @@ budgets:
   context_tokens: 4000      # PROMPTS.md §2 [6]
 
 features:
+  webui: true      # Alan_T web client served at /
   memory: true     # M1
   knowledge: true  # M2
   telegram: true   # M2
-  supervisor: false # M3
-  voice: false     # M6
+  supervisor: true  # M3 — ROUTER-model routing + skill selection
+  voice: true      # M6 — STT in + TTS voice replies (live S2S deferred)

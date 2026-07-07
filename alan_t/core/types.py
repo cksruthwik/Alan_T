@@ -10,9 +10,25 @@ Role = Literal["user", "assistant", "system", "tool"]
 
 
 @dataclass
+class LLMToolCall:
+    """A tool invocation requested by the model (provider-neutral)."""
+
+    id: str
+    name: str
+    arguments: dict[str, Any]
+
+
+@dataclass
 class ChatMessage:
     role: Role
     content: str
+    # local file paths / URLs / data URIs; adapter converts for the provider.
+    # Set only on VISION-role requests.
+    images: list[str] = field(default_factory=list)
+    # assistant messages that requested tools carry them; tool-result messages
+    # carry the id they answer. Provider wire formats stay in the adapter.
+    tool_calls: list[LLMToolCall] = field(default_factory=list)
+    tool_call_id: str = ""
 
 
 @dataclass
@@ -21,6 +37,7 @@ class ChatRequest:
     temperature: float | None = None
     max_tokens: int | None = None
     response_format: dict[str, Any] | None = None  # provider-native JSON mode
+    tools: list[dict[str, Any]] = field(default_factory=list)  # JSON-schema tool specs
 
 
 @dataclass
@@ -30,6 +47,7 @@ class ChatResponse:
     input_tokens: int = 0
     output_tokens: int = 0
     fallback_depth: int = 0  # 0 = primary answered
+    tool_calls: list[LLMToolCall] = field(default_factory=list)
 
 
 @dataclass
@@ -75,7 +93,8 @@ class ToolCall:
 class AgentTask:
     message: IncomingMessage
     history: list[ChatMessage] = field(default_factory=list)
-    skills: list[str] = field(default_factory=list)  # empty until M3 (SKILLS layer)
+    skills: list[str] = field(default_factory=list)  # SKILLS layer (supervisor-selected)
+    project_instructions: str = ""  # ChatGPT-style project context, injected per turn
 
 
 @dataclass

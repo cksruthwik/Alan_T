@@ -53,7 +53,7 @@ class Mem0Memory:
 
     async def _mem(self):
         if self._memory is None:
-            self._memory = await self._memory_cls.from_config(self._config)
+            self._memory = self._memory_cls.from_config(self._config)
         return self._memory
 
     async def recall(self, query: str, limit: int = 10) -> list[MemoryFact]:

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alan_T</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Ctext x='16' y='22' font-size='16' font-family='system-ui' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <!-- token gate -->
+  <div id="gate" class="gate hidden">
+    <div class="gate-card">
+      <h1>Alan_T</h1>
+      <p>Paste your <code>ALAN_API_TOKEN</code> (from <code>.env</code>) to connect.</p>
+      <input id="gate-token" type="password" placeholder="API token" autocomplete="off">
+      <button id="gate-go">Connect</button>
+      <p id="gate-err" class="gate-err"></p>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="side-head">
+        <span class="brand">Alan_T</span>
+        <button id="btn-new" title="New chat">＋</button>
+      </div>
+
+      <nav class="side-nav">
+        <button data-panel="library" class="nav-btn">📚 Library</button>
+        <button data-panel="approvals" class="nav-btn">✅ Approvals <span id="approvals-badge" class="badge hidden"></span></button>
+        <button data-panel="tasks" class="nav-btn">🎯 Tasks</button>
+        <button data-panel="projects" class="nav-btn">🗂 Projects</button>
+      </nav>
+
+      <div id="session-list" class="session-list"></div>
+
+      <div class="side-foot">
+        <span id="health-dot" class="dot"></span>
+        <span id="health-text">…</span>
+        <button id="btn-logout" title="Change token">⎋</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="chat-head">
+        <div>
+          <span id="chat-title">New chat</span>
+          <span id="chat-project" class="chip hidden"></span>
+          <span id="chat-agent" class="chip agent hidden"></span>
+        </div>
+        <div class="chat-actions">
+          <button id="btn-rename" title="Rename chat">✏️</button>
+          <button id="btn-assign" title="Assign to project">🗂</button>
+          <button id="btn-archive" title="Archive chat">🗄</button>
+          <button id="btn-delete" title="Delete chat">🗑</button>
+        </div>
+      </header>
+
+      <div id="messages" class="messages">
+        <div class="empty-hint" id="empty-hint">
+          <h2>What can I do for you?</h2>
+          <p>Ask anything · search your notes · send a 🎯 goal ·
+             hold 🎙 to talk · drop a file to add it to your library</p>
+        </div>
+      </div>
+
+      <div id="approval-strip" class="approval-strip hidden"></div>
+
+      <footer class="composer">
+        <button id="btn-attach" title="Upload file to library">📎</button>
+        <button id="btn-image" title="Ask about an image">🖼</button>
+        <textarea id="input" rows="1" placeholder="Message Alan_T…"></textarea>
+        <button id="btn-goal" title="Run as multi-step goal">🎯</button>
+        <button id="btn-mic" title="Hold to talk">🎙</button>
+        <button id="btn-send" title="Send">➤</button>
+      </footer>
+      <input id="file-input" type="file" class="hidden">
+      <input id="image-input" type="file" accept="image/*" class="hidden">
+    </main>
+
+    <!-- slide-over panel -->
+    <section id="panel" class="panel hidden">
+      <header><span id="panel-title"></span><button id="panel-close">✕</button></header>
+      <div id="panel-body"></div>
+    </section>
+  </div>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

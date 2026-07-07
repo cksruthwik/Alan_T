@@ -14,7 +14,7 @@ kind prior so preferences and active goals always stay in reach of recall.
 
 ## Knowledge
 
-RAG over the user's own files with citations. Sources are mirrored into ai-vfs,
+RAG over the user's own files with citations. Sources are read from local mounts,
 chunked on heading boundaries, embedded through the LiteLLM seam, and fused with
 a keyword leg using reciprocal rank fusion before answer generation happens.
 """

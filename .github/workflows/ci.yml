@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: alan
+          POSTGRES_PASSWORD: alan
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U alan"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Sync dependencies
+        run: uv sync --extra telegram
+      - name: Lint
+        run: uv run ruff check alan_t tests
+      - name: Unit + E2E tests
+        env:
+          POSTGRES_PASSWORD: alan
+        run: uv run pytest -q

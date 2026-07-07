@@ -1,0 +1,15 @@
+# External MCP servers (Docs_COMPLEX/integrations/MCP.md). Explicitly added by
+# the user, never auto-discovered. Each server's tools register as
+# "<server>_<tool>" and pass the SAME permission gate as native tools —
+# default ASK; override per tool under `tiers:`.
+#
+# servers:
+#   github:
+#     command: npx
+#     args: ["-y", "@modelcontextprotocol/server-github"]
+#     env: { GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}" }
+#     tiers:
+#       search_repositories: ALLOW   # read-only → auto-execute
+#       create_issue: ASK            # writes → require approval
+
+servers: {}

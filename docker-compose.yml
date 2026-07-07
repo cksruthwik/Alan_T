@@ -23,8 +23,8 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - app_data:/app/data                         # persist ai-vfs sqlite + blobs (avoid re-embedding on rebuild)
-      - ${NOTES_PATH:-/Users/cksr/Desktop/C/Downloads_refined}:${NOTES_PATH:-/Users/cksr/Desktop/C/Downloads_refined}:ro  # host notes, read-only (path must match config/vfs.yaml)
+      - app_data:/app/data                         # notes the agent writes, generated images
+      - ${NOTES_PATH:-/Users/cksr/Desktop/C/Projects/Gen_AI/Alan_T_Root/Notes}:${NOTES_PATH:-/Users/cksr/Desktop/C/Projects/Gen_AI/Alan_T_Root/Notes}:ro  # host notes, read-only — MUST match the notes path in config/mounts.yaml (or set NOTES_PATH)
     depends_on:
       postgres:
         condition: service_healthy

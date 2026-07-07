@@ -1,14 +1,19 @@
 """Chunking (KNOWLEDGE.md §2): cut on meaning, every chunk stands alone, deterministic IDs.
 
-v1 parsers: Markdown/txt (heading-based). PDF (docling) and code (tree-sitter) are
-later additions per the parser table — typed skip for unknown types, never fatal.
+Parsers: Markdown/txt (heading-based), PDF (pypdf text extraction, page-aware).
+Code files ride the markdown path (whole-file → paragraph splits). Typed skip
+for anything else — never fatal.
 """
 
 from __future__ import annotations
 
 import hashlib
+import io
+import logging
 import re
 from dataclasses import dataclass, field
+
+log = logging.getLogger("alan_t.chunking")
 
 MAX_TOKENS = 512
 MIN_TOKENS = 40
@@ -107,11 +112,41 @@ def chunk_markdown(vpath: str, text: str, mount: str, content_hash: str) -> list
     return chunks
 
 
+def chunk_pdf(vpath: str, data: bytes, mount: str, content_hash: str) -> list[DocChunk] | None:
+    """PDF → per-page text → markdown-path chunking with page markers.
+
+    Text-layer extraction only (pypdf). Scanned/image PDFs yield no text and
+    are skipped with a log line — OCR is the vision agent's job, on demand.
+    """
+    try:
+        from pypdf import PdfReader
+
+        reader = PdfReader(io.BytesIO(data))
+        pages = []
+        for i, page in enumerate(reader.pages, 1):
+            text = (page.extract_text() or "").strip()
+            if text:
+                pages.append(f"## Page {i}\n\n{text}")
+    except Exception as e:
+        log.warning("pdf extraction failed for %s: %s", vpath, type(e).__name__)
+        return None
+    if not pages:
+        log.info("pdf has no text layer (scanned?): %s — skipped", vpath)
+        return None
+    chunks = chunk_markdown(vpath, "\n\n".join(pages), mount, content_hash)
+    for c in chunks:
+        c.payload["doc_type"] = "pdf"
+    return chunks
+
+
 def chunk_file(vpath: str, data: bytes, content_hash: str) -> list[DocChunk] | None:
     """Returns None for unsupported types (typed skip, never fatal)."""
     # vpath = vfs://<mount>/<relpath>
     mount = vpath.removeprefix("vfs://").split("/", 1)[0]
-    if not vpath.lower().endswith(TEXT_SUFFIXES):
+    lower = vpath.lower()
+    if lower.endswith(".pdf"):
+        return chunk_pdf(vpath, data, mount, content_hash)
+    if not lower.endswith(TEXT_SUFFIXES):
         return None
     try:
         text = data.decode("utf-8", errors="replace")

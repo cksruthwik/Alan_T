@@ -1,10 +1,61 @@
-# Tool permission tiers (Docs/security/TOOL_PERMISSIONS.md).
-# ALLOW = auto-execute (audited). ASK = require user approval. DENY = refuse.
-# Unlisted tools default to ASK.
+# Tool permission tiers (Docs_COMPLEX/security/TOOL_PERMISSIONS.md).
+# ALLOW = auto-execute (audited). ASK = require user approval (interactive —
+# core/approvals.py; Telegram buttons or the approvals API). DENY = refuse.
+# Unlisted tools default to ASK. shell_exec is DENY by architecture: agents
+# never get a host shell, no exceptions.
 tools:
+  # memory
   remember_fact: ALLOW
   recall_memory: ALLOW
+  forget_memory: ASK
+
+  # knowledge / sources (read-only)
   search_knowledge: ALLOW
   read_source: ALLOW
-  forget_memory: ASK
-  ingest_path: ASK
+  list_source_files: ALLOW
+  grep_sources: ALLOW
+  ingest_files: ASK          # first ingest = first cloud egress of those files
+
+  # media
+  analyze_image: ALLOW
+  transcribe_audio: ALLOW
+  generate_image: ALLOW      # spends quota, writes only under data/images
+
+  # notes & documents (Alan_T-owned storage — reversible writes)
+  note_create: ALLOW
+  note_append: ALLOW
+  note_read: ALLOW
+  note_list: ALLOW
+  note_search: ALLOW
+  document_create: ALLOW
+  document_update: ALLOW
+  document_read: ALLOW
+  document_list: ALLOW
+
+  # contacts
+  resolve_contact: ALLOW
+  manage_contact: ASK
+
+  # web (reads the world, changes nothing)
+  web_search: ALLOW
+  web_fetch: ALLOW
+  browser_run: ASK           # a driven browser can click/submit — outward-facing
+
+  # email & calendar (reads free; writes leave the machine)
+  email_list: ALLOW
+  email_read: ALLOW
+  email_send: ASK
+  calendar_list: ALLOW
+  calendar_create: ASK
+  calendar_update: ASK
+  calendar_delete: ASK
+
+  # automation & autonomy
+  notify: ALLOW              # messages the user themself
+  list_automations: ALLOW
+  run_automation: ASK
+  list_task_runs: ALLOW
+  run_goal: ASK              # multi-step autonomous execution
+
+  # hard denies (SECURITY_ARCHITECTURE — no side doors)
+  shell_exec: DENY

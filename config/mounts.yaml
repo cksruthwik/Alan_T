@@ -1,0 +1,33 @@
+ # Knowledge mounts, read directly by adapters/local_files.py (no mirror).
+# Review BEFORE first ingest — the include/exclude filters below are the
+# security boundary: first ingest is the first cloud egress of these files.
+# Paths are host paths; mounted read-only into containers (docker-compose.yml
+# must bind-mount each path at the same location).
+mounts:
+  notes:
+    path: /Users/cksr/Desktop/C/Projects/Gen_AI/Alan_T_Root/Notes
+    include: ["**/*.md", "**/*.txt", "**/*.pdf"]
+    exclude: ["**/.git/**", "**/node_modules/**"]
+
+  # Alan_T's own notes (Notes agent writes here; ingesting makes them RAG-searchable)
+  alan_notes:
+    path: ./data/notes
+    include: ["**/*.md"]
+
+  # files sent via web/Telegram/API uploads (Library)
+  uploads:
+    path: ./data/uploads
+    include: ["**/*.md", "**/*.txt", "**/*.pdf"]
+
+  # add code repos for the Code agent, e.g.:
+  # myproject:
+  #   path: ~/Projects/myproject
+  #   include: ["**/*.py", "**/*.ts", "**/*.md"]
+  #   exclude: ["**/.venv/**", "**/dist/**"]
+
+exclude_global:
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/.env*"
+  - "**/*.key"
+  - "**/*.pem"

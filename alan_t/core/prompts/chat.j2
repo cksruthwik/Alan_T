@@ -18,6 +18,11 @@ What you remember about {{ user_name }}:
 - {% if f.noted_at %}(noted {{ f.noted_at }}) {% endif %}{{ f.content }}
 {% endfor %}
 {% endif %}
+{% if project_instructions %}
+
+Active project context (follow it for this conversation):
+{{ project_instructions }}
+{% endif %}
 {% if skills %}
 
 Selected skills for this turn:
